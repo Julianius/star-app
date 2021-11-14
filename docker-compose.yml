@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+
+  mongodb:
+    image: bitnami/mongodb:5.0.4
+    volumes:
+      - 'mongodb_data:/bitnami/mongodb'
+    environment:
+      - MONGODB_DATABASE=restdb
+      - MONGODB_USERNAME=test
+      - MONGODB_PASSWORD=test
+      - MONGODB_ROOT_PASSWORD=other
+  
+  app:
+    build: .
+    depends_on: 
+      - mongodb
+
+  nginx:
+    image: nginx:1.20-alpine
+    ports: 
+      - "80:80"
+    volumes:
+      - ./nginx/static/:/usr/share/nginx/html/
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on: 
+      - app
+
+volumes:
+  mongodb_data:
+    name: mongodb_data
