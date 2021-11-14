@@ -18,41 +18,51 @@ pipeline {
     stages {
 
         stage('git') {
-            script {
-                sh """
-                    echo "Switching to 'origin/master' branch."
-                    git checkout -b main origin/master
-                """
+            steps {
+                script {
+                    sh """
+                        echo "Switching to 'origin/master' branch."
+                        git checkout -b main origin/master
+                    """
+                }
             }
         }
 
         stage('build') {
-            script {
-                sh '''
-                    docker build -t $REPO_NAME .
-                '''
+            steps {
+                script {
+                    sh '''
+                        docker build -t $REPO_NAME .
+                    '''
+                }
             }
         }//
 
         stage('test') {
-            script {
-                sh '''
-                    docker run -p 5000:5000 --network=jenkins_star --name app -t -d $REPO_NAME
-                    sleep 5
-                '''
-                final String url = 'http://app:80'
-                final String response = sh(script: "curl -s -o /dev/null -w '%{http_code}' $url", returnStdout: true).trim()
-                echo response
-                if(!response.equals("200")) {                      
-                    error "Tests failed"
+            steps {
+                script {
+                    sh '''
+                        docker run -p 5000:5000 --network=jenkins_star --name app -t -d $REPO_NAME
+                        sleep 5
+                    '''
+                    final String url = 'http://app:80'
+                    final String response = sh(script: "curl -s -o /dev/null -w '%{http_code}' $url", returnStdout: true).trim()
+                    echo response
+                    if(!response.equals("200")) {                      
+                        error "Tests failed"
+                    }
                 }
             }
         }
 
         stage('publish') {
-            sh '''
-                docker build -t $REPO_NAME .
-            '''
+            steps {
+                script {
+                    sh '''
+                        docker build -t $REPO_NAME .
+                    '''
+                }
+            }
         }
 
     }  
