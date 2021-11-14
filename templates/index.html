@@ -1,0 +1,11 @@
+<!doctype html>
+<html>
+    <head>
+        <link href='/static/style.css' rel='stylesheet' />
+    </head>
+    <body>
+        {% for star in stars %}
+        <div><p>{{ star.name }} distance is: <b>{{ star.distance }}</b></p></div>
+        {% endfor %}
+    </body>
+</html>
