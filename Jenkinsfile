@@ -34,6 +34,7 @@ pipeline {
             steps {
                 script {
                     sh '''
+                        docker container rm -f app
                         docker run -p 5000:5000 --network=jenkins_star --name app -t -d $REPO_NAME
                         sleep 5
                     '''
