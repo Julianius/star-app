@@ -32,7 +32,7 @@ pipeline {
                     docker build -t $REPO_NAME .
                 '''
             }
-        }
+        }//
 
         stage('test') {
             script {
