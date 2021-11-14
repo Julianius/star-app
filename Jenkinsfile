@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        AWS_ACCESS_KEY_ID     = credentials('jenkins-aws-secret-key-id')
-        AWS_SECRET_ACCESS_KEY = credentials('jenkins-aws-secret-access-key')
+       AWS_ACCESS_KEY_ID     = credentials('jenkins-aws-secret-key-id')
+       AWS_SECRET_ACCESS_KEY = credentials('jenkins-aws-secret-access-key')
         REPO_NAME = "751307794059.dkr.ecr.eu-west-3.amazonaws.com/star"
     }
 
@@ -51,7 +51,10 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        docker build -t $REPO_NAME .
+                        aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+                        aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+                        aws ecr get-login-password --region eu-west-3 | docker login --username AWS --password-stdin 751307794059.dkr.ecr.eu-west-3.amazonaws.com
+                        docker push $REPO_NAME
                     '''
                 }
             }
