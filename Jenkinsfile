@@ -2,6 +2,7 @@ MASTER = "master"
 RELEASE = "release"
 PUSHED_BRANCH_NAME = ''
 PUSHED_BRANCH_NUM = ''
+NEXT_TAG = ''
 
 def getPushedBranchName (String pushed_branch) {
     if(pushed_branch.contains('master'))
@@ -11,8 +12,17 @@ def getPushedBranchName (String pushed_branch) {
     return 'feature'
 }
 
-
 def getPushedBranchNum = { String branchName -> branchName.substring(8) }
+
+def getNextTag (String version) {
+    Integer check_if_tags_exist = sh(returnStatus: true, script: "git describe --tags --abbrev=0 2>/dev/null")
+    if(check_if_tags_exist == 0) {
+        int last_dig = sh(returnStdout: true, script: "git tag --merged release/$version | cut -d '.' -f3 | sort -n --reverse | head -n 1").split()[0]
+        ++last_dig
+        return "$version.$last_dig"
+    }
+    return "$version" + ".0"
+}
 
 pipeline {
     agent any
@@ -57,14 +67,15 @@ pipeline {
             steps {
                 script {
                     BUILD_STRING = ''
+                    NEXT_TAG = getNextTag(PUSHED_BRANCH_NUM)
+
                     if(PUSHED_BRANCH_NAME.equals(RELEASE)) {
-                        BUILD_STRING="$ECR_NAME/$REPO_NAME:$PUSHED_BRANCH_NUM"
+                        BUILD_STRING="$ECR_NAME/$REPO_NAME:$NEXT_TAG"
                     } else {
                         BUILD_STRING="$ECR_NAME/$REPO_NAME"
                     }
-                    sh """
-                        docker build -t $BUILD_STRING .
-                    """
+
+                    sh "docker build -t $BUILD_STRING ."
                 }
             }
         }
@@ -101,6 +112,13 @@ pipeline {
                         aws ecr get-login-password --region eu-west-3 | docker login --username AWS --password-stdin $ECR_NAME
                         docker push $BUILD_STRING
                     """
+                    if(PUSHED_BRANCH_NAME.equals(RELEASE)) {
+                        sh """
+                            git clean -f
+                            git tag $NEXT_TAG -m "New version!"
+                            git push origin $NEXT_TAG
+                        """
+                    }
                 }
             }
         }
