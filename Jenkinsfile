@@ -57,9 +57,6 @@ pipeline {
                         if(!response.equals("200")) {                      
                             error "Tests failed"
                         }
-                        sh '''
-                            docker-compose -p jenkins down || true
-                        '''
                 }
             }
         }
@@ -83,7 +80,7 @@ pipeline {
 
         always {
             sh '''
-                docker-compose -p jenkins down
+                docker-compose -p jenkins down || true
             '''
         }
 
