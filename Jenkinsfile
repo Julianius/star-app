@@ -50,7 +50,6 @@ pipeline {
                             sed -i "s%./nginx/nginx.conf%/home/julian/jenkins_files/nginx/nginx.conf%" docker-compose.yml
                             docker-compose -p jenkins up -d --build
                             sleep 10
-                            docker-compose down
                         """
                         final String url = 'http://nginx:80'
                         final String response = sh(script: "curl -s -o /dev/null -w '%{http_code}' $url", returnStdout: true).trim()
@@ -58,6 +57,9 @@ pipeline {
                         if(!response.equals("200")) {                      
                             error "Tests failed"
                         }
+                        sh '''
+                            docker-compose -p jenkins down
+                        '''
                 }
             }
         }
