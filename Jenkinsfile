@@ -1,3 +1,5 @@
+MASTER = "master"
+
 pipeline {
     agent any
 
@@ -6,7 +8,6 @@ pipeline {
         AWS_SECRET_ACCESS_KEY = credentials('jenkins-aws-secret-access-key')
         ECR_NAME              = "751307794059.dkr.ecr.eu-west-3.amazonaws.com"
         REPO_NAME             = "star-app"
-
     }
 
     stages {
@@ -19,6 +20,11 @@ pipeline {
                         echo "Switching to 'origin/master' branch."
                         git checkout -b main origin/master
                     """
+                    if(env.BRANCH_NAME.equals(MASTER)) {
+                        echo 'This is master'
+                    } else {
+                        echo 'This is not master'
+                    }
                 }
             }
         }
@@ -36,8 +42,6 @@ pipeline {
         stage('test') {
             steps {
                 script {
-                    
-                        //docker run -p 5000:5000 --network=jenkins_star --name app -t -d $REPO_NAME
                         sh """
                             docker container rm -f app
                             mkdir /var/jenkins_home/testing_files/ || true
@@ -48,13 +52,11 @@ pipeline {
                             sleep 10
                             docker-compose down
                         """
-                        if(false == true) {
-                            final String url = 'http://nginx:80'
-                            final String response = sh(script: "curl -s -o /dev/null -w '%{http_code}' $url", returnStdout: true).trim()
-                            echo response
-                            if(!response.equals("200")) {                      
-                                error "Tests failed"
-                            }
+                        final String url = 'http://nginx:80'
+                        final String response = sh(script: "curl -s -o /dev/null -w '%{http_code}' $url", returnStdout: true).trim()
+                        echo response
+                        if(!response.equals("200")) {                      
+                            error "Tests failed"
                         }
                 }
             }
