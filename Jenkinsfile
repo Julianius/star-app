@@ -58,7 +58,7 @@ pipeline {
                             error "Tests failed"
                         }
                         sh '''
-                            docker-compose -p jenkins down
+                            docker-compose -p jenkins down || true
                         '''
                 }
             }
