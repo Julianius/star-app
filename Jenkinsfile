@@ -41,11 +41,11 @@ pipeline {
                             cp -a nginx /var/jenkins_home/testing_files/
                             sed -i "s%./nginx/static%/home/julian/jenkins_files/nginx/static/%" docker-compose.yml
                             sed -i "s%./nginx/nginx.conf%/home/julian/jenkins_files/nginx/nginx.conf%" docker-compose.yml
-                            docker-compose -p jenkins up --build
-                            sleep 5
+                            docker-compose -p jenkins up -d --build
+                            sleep 10
                         """
                         if(false == true) {
-                            final String url = 'http://app:5000'
+                            final String url = 'http://nginx:80'
                             final String response = sh(script: "curl -s -o /dev/null -w '%{http_code}' $url", returnStdout: true).trim()
                             echo response
                             if(!response.equals("200")) {                      
