@@ -49,7 +49,7 @@ pipeline {
                             sed -i "s%./nginx/static%/home/julian/jenkins_files/nginx/static/%" docker-compose.yml
                             sed -i "s%./nginx/nginx.conf%/home/julian/jenkins_files/nginx/nginx.conf%" docker-compose.yml
                             docker-compose -p jenkins up -d --build
-                            sleep 10
+                            sleep 15
                         """
                         final String url = 'http://nginx:80'
                         final String response = sh(script: "curl -s -o /dev/null -w '%{http_code}' $url", returnStdout: true).trim()
@@ -77,5 +77,15 @@ pipeline {
             }
         }
 
-    }  
+    }
+
+    post {
+
+        always {
+            sh '''
+                docker-compose -p jenkins down
+            '''
+        }
+
+    }
 }
