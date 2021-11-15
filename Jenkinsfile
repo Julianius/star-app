@@ -51,7 +51,7 @@ pipeline {
                             docker-compose -p jenkins up -d --build
                             sleep 15
                         """
-                        final String url = 'http://nginx:80'
+                        final String url = 'http://nginx:80/star'
                         final String response = sh(script: "curl -s -o /dev/null -w '%{http_code}' $url", returnStdout: true).trim()
                         echo response
                         if(!response.equals("200")) {                      
