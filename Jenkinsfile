@@ -25,13 +25,13 @@ pipeline {
         stage('build') {
             steps {
                 script {
-                    sh '''
+                    sh """
                         docker build -t $ECR_NAME/$REPO_NAME .
-                    '''
+                    """
                 }
             }
         }
-//
+
         stage('test') {
             steps {
                 script {
@@ -61,12 +61,12 @@ pipeline {
         stage('publish') {
             steps {
                 script {
-                    sh '''
+                    sh """
                         aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
                         aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
                         aws ecr get-login-password --region eu-west-3 | docker login --username AWS --password-stdin $ECR_NAME
                         docker push $ECR_NAME/$REPO_NAME
-                    '''
+                    """
                 }
             }
         }
