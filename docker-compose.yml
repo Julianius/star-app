@@ -12,14 +12,15 @@ services:
       - MONGODB_PASSWORD=test
       - MONGODB_ROOT_PASSWORD=other
     networks:
-      - star
+      - backend
   
   app:
     build: .
     depends_on: 
       - mongodb
     networks:
-      - star
+      - frontend
+      - backend
 
   nginx:
     image: nginx:1.20-alpine
@@ -31,12 +32,17 @@ services:
     depends_on: 
       - app
     networks:
-      - star
+      - app
+      - frontend
 
 volumes:
   mongodb_data:
     name: mongodb_data
 
 networks:
-  star:
+  app:
+    driver: bridge
+  frontend:
+    driver: bridge
+  backend:
     driver: bridge

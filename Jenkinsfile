@@ -41,7 +41,7 @@ pipeline {
                             cp -a nginx /var/jenkins_home/testing_files/
                             sed -i "s%./nginx/static%/home/julian/jenkins_files/nginx/static/%" docker-compose.yml
                             sed -i "s%./nginx/nginx.conf%/home/julian/jenkins_files/nginx/nginx.conf%" docker-compose.yml
-                            docker-compose -p jenkins-home up --build
+                            docker-compose -p jenkins up --build
                             sleep 5
                         """
                         if(false == true) {
