@@ -72,7 +72,7 @@ pipeline {
                 }
             }
         }
-
+//
         stage('test') {
             steps {
                 script {
@@ -95,8 +95,7 @@ pipeline {
                 }
             }
         }
-//
-//cheaas
+
         stage('publish') {
             steps {
                 script {
