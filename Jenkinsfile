@@ -33,20 +33,21 @@ pipeline {
         stage('test') {
             steps {
                 script {
-                    if(false == true) {
+                    
                         //docker run -p 5000:5000 --network=jenkins_star --name app -t -d $REPO_NAME
                         sh '''
                             docker container rm -f app
                             docker-compose up --build
                             sleep 5
                         '''
-                        final String url = 'http://app:5000'
-                        final String response = sh(script: "curl -s -o /dev/null -w '%{http_code}' $url", returnStdout: true).trim()
-                        echo response
-                        if(!response.equals("200")) {                      
-                            error "Tests failed"
+                        if(false == true) {
+                            final String url = 'http://app:5000'
+                            final String response = sh(script: "curl -s -o /dev/null -w '%{http_code}' $url", returnStdout: true).trim()
+                            echo response
+                            if(!response.equals("200")) {                      
+                                error "Tests failed"
+                            }
                         }
-                    }
                 }
             }
         }
