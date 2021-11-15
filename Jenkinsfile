@@ -1,4 +1,18 @@
 MASTER = "master"
+RELEASE = "release"
+PUSHED_BRANCH_NAME = ''
+PUSHED_BRANCH_NUM = ''
+
+def getPushedBranchName (String pushed_branch) {
+    if(pushed_branch.contains('master'))
+        return 'master'
+    else if(pushed_branch.contains('release'))
+        return 'release'
+    return 'feature'
+}
+
+
+def getPushedBranchNum = { String branchName -> branchName.substring(8) }
 
 pipeline {
     agent any
@@ -12,19 +26,29 @@ pipeline {
 
     stages {
 
-        stage('git') {
+        stage('clone') {
             steps {
                 script {
                     sh """
-                        echo $env.BRANCH_NAME
-                        echo "Switching to 'origin/master' branch."
                         git checkout -b main origin/master
                     """
+                    PUSHED_BRANCH_NAME = getPushedBranchName(env.BRANCH_NAME)
+                    if(PUSHED_BRANCH_NAME.equals(RELEASE)) {
+                        PUSHED_BRANCH_NUM = getPushedBranchNum(env.GIT_BRANCH)
+                        sh """
+                            echo "Checking out branch 'release/$PUSHED_BRANCH_NUM'."
+                            git checkout release/$PUSHED_BRANCH_NUM
+                            echo "Getting tags."
+                            git fetch --tags 
+                        """
+                    }
+                    /*
                     if(env.BRANCH_NAME.equals(MASTER)) {
                         echo 'This is master'
-                    } else {
+                    } else if(){
                         echo 'This is not master'
                     }
+                    */
                 }
             }
         }
@@ -32,8 +56,14 @@ pipeline {
         stage('build') {
             steps {
                 script {
+                    BUILD_STRING = ''
+                    if(PUSHED_BRANCH_NAME.equals(RELEASE)) {
+                        BUILD_STRING="$ECR_NAME/$REPO_NAME:$PUSHED_BRANCH_NUM"
+                    } else {
+                        BUILD_STRING="$ECR_NAME/$REPO_NAME"
+                    }
                     sh """
-                        docker build -t $ECR_NAME/$REPO_NAME .
+                        docker build -t $BUILD_STRING
                     """
                 }
             }
@@ -48,6 +78,7 @@ pipeline {
                             cp -a nginx /var/jenkins_home/testing_files/
                             sed -i "s%./nginx/static%/home/julian/jenkins_files/nginx/static/%" docker-compose.yml
                             sed -i "s%./nginx/nginx.conf%/home/julian/jenkins_files/nginx/nginx.conf%" docker-compose.yml
+                            sed -i "s%$ECR_NAME/$REPO_NAME%$BUILD_STRING%" docker-compose.yml
                             docker-compose -p jenkins up -d --build
                             sleep 15
                         """
@@ -68,7 +99,7 @@ pipeline {
                         aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
                         aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
                         aws ecr get-login-password --region eu-west-3 | docker login --username AWS --password-stdin $ECR_NAME
-                        docker push $ECR_NAME/$REPO_NAME
+                        docker push $BUILD_STRING
                     """
                 }
             }
