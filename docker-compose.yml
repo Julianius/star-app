@@ -11,11 +11,15 @@ services:
       - MONGODB_USERNAME=test
       - MONGODB_PASSWORD=test
       - MONGODB_ROOT_PASSWORD=other
+    networks:
+      - star
   
   app:
     build: .
     depends_on: 
       - mongodb
+    networks:
+      - star
 
   nginx:
     image: nginx:1.20-alpine
@@ -26,7 +30,13 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     depends_on: 
       - app
+    networks:
+      - star
 
 volumes:
   mongodb_data:
     name: mongodb_data
+
+networks:
+  star:
+    driver: bridge
