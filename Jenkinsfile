@@ -45,6 +45,7 @@ pipeline {
                             sed -i "s%./nginx/nginx.conf%/home/julian/jenkins_files/nginx/nginx.conf%" docker-compose.yml
                             docker-compose -p jenkins up -d --build
                             sleep 10
+                            docker-compose down
                         """
                         if(false == true) {
                             final String url = 'http://nginx:80'
