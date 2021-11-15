@@ -52,13 +52,6 @@ pipeline {
                             git fetch --tags 
                         """
                     }
-                    /*
-                    if(env.BRANCH_NAME.equals(MASTER)) {
-                        echo 'This is master'
-                    } else if(){
-                        echo 'This is not master'
-                    }
-                    */
                 }
             }
         }
@@ -102,7 +95,8 @@ pipeline {
                 }
             }
         }
-
+//
+//cheaas
         stage('publish') {
             steps {
                 script {
