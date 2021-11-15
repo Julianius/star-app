@@ -37,6 +37,9 @@ pipeline {
                         //docker run -p 5000:5000 --network=jenkins_star --name app -t -d $REPO_NAME
                         sh '''
                             docker container rm -f app
+                            cp -a nginx /var/jenkins_home/testing_files/
+                            sed -i '/s/\.\/nginx\/static\//\/home\/julian\/jenkins_files\.\/nginx\/static\/'
+                            sed -i '/s/\.\/nginx\/nginx\.conf\//\/home\/julian\/jenkins_files\.\/nginx\/nginx\.conf\/'
                             docker-compose up --build
                             sleep 5
                         '''
