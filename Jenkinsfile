@@ -63,7 +63,7 @@ pipeline {
                         BUILD_STRING="$ECR_NAME/$REPO_NAME"
                     }
                     sh """
-                        docker build -t $BUILD_STRING
+                        docker build -t $BUILD_STRING .
                     """
                 }
             }
