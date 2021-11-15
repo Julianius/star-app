@@ -14,6 +14,7 @@ pipeline {
         stage('git') {
             steps {
                 script {
+                    echo $env.BRANCH_NAM
                     sh """
                         echo "Switching to 'origin/master' branch."
                         git checkout -b main origin/master
