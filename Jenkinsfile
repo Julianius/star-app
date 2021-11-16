@@ -76,6 +76,7 @@ pipeline {
         stage('test') {
             steps {
                 script {
+                        final String url = 'http://nginx:80/star'
                         sh """
                             docker container rm -f app
                             mkdir /var/jenkins_home/testing_files/ || true
@@ -84,13 +85,17 @@ pipeline {
                             sed -i "s%./nginx/nginx.conf%/home/julian/jenkins_files/nginx/nginx.conf%" docker-compose.yml
                             sed -i "s%$ECR_NAME/$REPO_NAME%$BUILD_STRING%" docker-compose.yml
                             docker-compose -p jenkins up -d --build
-                            sleep 15
                         """
-                        final String url = 'http://nginx:80/star'
-                        final String response = sh(script: "curl -s -o /dev/null -w '%{http_code}' $url", returnStdout: true).trim()
-                        echo response
-                        if(!response.equals("200")) {                      
-                            error "Tests failed"
+                        Integer counter = 5
+                        String response = "-1"
+                        while(counter > 0 && response.equals("200")) {
+                            sh 'sleep 5'
+                            response = sh(script: "curl -s -o /dev/null -w '%{http_code}' $url", returnStdout: true).trim()
+                            echo response
+                            if(!response.equals("200")) {                      
+                                error "Tests failed"
+                            }
+                            --counter
                         }
                 }
             }
