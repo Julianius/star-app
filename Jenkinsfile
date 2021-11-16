@@ -72,7 +72,7 @@ pipeline {
                 }
             }
         }
-//
+
         stage('test') {
             steps {
                 script {
@@ -109,7 +109,7 @@ pipeline {
                         sh """
                             git clean -f
                             git tag $NEXT_TAG -m "New version!"
-                            git push origin $NEXT_TAG
+                            git push origin $NEXT_TAG || true   
                         """
                     }
                 }
