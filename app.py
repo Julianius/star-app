@@ -5,11 +5,13 @@ from flask import jsonify
 from flask import request
 from flask import render_template
 from flask_pymongo import PyMongo
+import os
 
 app = Flask(__name__)
 
 app.config['MONGO_DBNAME'] = 'restdb'
-app.config['MONGO_URI'] = 'mongodb://test:test@mongodb:27017/restdb?authSource=restdb'
+app.config['MONGO_URI'] =  os.environ['MONGODB_URL']
+#'mongodb://test:test@mongodb-0.mongodb-headless:27017,mongodb-1.mongodb-headless/restdb?authSource=restdb'
 
 mongo = PyMongo(app)
 

@@ -18,6 +18,8 @@ services:
     image: 751307794059.dkr.ecr.eu-west-3.amazonaws.com/star-app
     depends_on: 
       - mongodb
+    environment:
+      - MONGODB_URL=mongodb://test:test@mongodb:27017/restdb?authSource=restdb
     networks:
       - frontend
       - backend
