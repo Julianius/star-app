@@ -120,7 +120,25 @@ pipeline {
                 }
             }
         }
+/*
+        stage('update gitops') {
+            when {
+                expression {
+                    return PUSHED_BRANCH_NAME.equals(RELEASE);
+                }
+            }
 
+            steps {
+                script {
+                    sh """
+                        mkdir gitops
+                        git clone https://github.com/Julianius/star-app-gitops ./gitops
+                        sed -i "s%./gitops/charts/app/%/home/julian/jenkins_files/nginx/static/%" docker-compose.yml
+                    """
+                }
+            }
+        }
+*/
     }
 //
     post {
