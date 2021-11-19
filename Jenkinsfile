@@ -1,5 +1,6 @@
 MASTER = "master"
 RELEASE = "release"
+DEV = "dev"
 PUSHED_BRANCH_NAME = ''
 PUSHED_BRANCH_NUM = ''
 NEXT_TAG = ''
@@ -32,6 +33,7 @@ pipeline {
         AWS_SECRET_ACCESS_KEY = credentials('jenkins-aws-secret-access-key')
         ECR_NAME              = "751307794059.dkr.ecr.eu-west-3.amazonaws.com"
         REPO_NAME             = "star-app"
+        GIT_URL               = "git@github.com:Julianius/star-app-gitops.git"
     }
 
     stages {
@@ -63,7 +65,7 @@ pipeline {
                     NEXT_TAG = getNextTag(PUSHED_BRANCH_NUM)
 
                     if(PUSHED_BRANCH_NAME.equals(RELEASE)) {
-                        BUILD_STRING="$ECR_NAME/$REPO_NAME:$NEXT_TAG"
+                        BUILD_STRING="$ECR_NAME/$REPO_NAME:$RELEASE-$NEXT_TAG"
                     } else {
                         BUILD_STRING="$ECR_NAME/$REPO_NAME"
                     }
@@ -120,7 +122,7 @@ pipeline {
                 }
             }
         }
-/*
+
         stage('update gitops') {
             when {
                 expression {
@@ -130,17 +132,28 @@ pipeline {
 
             steps {
                 script {
+                    String sed_params = ""
+                    String sed_path = ""
+                    if(PUSHED_BRANCH_NAME.equals(RELEASE)) {
+                        sed_params = "\"s/release-.*/release-$NEXT_TAG/\""
+                        sed_path = "./gitops/charts/app/release.values.yaml"
+                    } else {
+
+                    }
                     sh """
                         mkdir gitops
-                        git clone https://github.com/Julianius/star-app-gitops ./gitops
-                        sed -i "s%./gitops/charts/app/%/home/julian/jenkins_files/nginx/static/%" docker-compose.yml
+                        git clone $GIT_URL ./gitops
+                        sed -i $sed_params $sed_path
+                        git -C "./gitops" add . 
+                        git -C "./gitops" commit -m "New app version $NEXT_TAG"
+                        git -C "./gitops" push
                     """
                 }
             }
         }
-*/
+
     }
-//
+
     post {
 
         always {
