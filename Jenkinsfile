@@ -109,14 +109,17 @@ pipeline {
                         """
                         Integer counter = 5
                         String response = "-1"
-                        while(counter > 0 && response.equals("200")) {
+                        while(counter > 0) {
                             sh 'sleep 5'
                             response = sh(script: "curl -s -o /dev/null -w '%{http_code}' $url", returnStdout: true).trim()
                             echo response
-                            if(!response.equals("200")) {                      
-                                error "Tests failed"
+                            if (response.equals("200")) {
+                                break
                             }
                             --counter
+                        }
+                        if(counter == 0) {
+                            error "Tests failed"
                         }
                 }
             }
