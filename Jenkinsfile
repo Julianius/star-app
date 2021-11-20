@@ -10,6 +10,8 @@ def getPushedBranchName (String pushed_branch) {
         return 'master'
     else if(pushed_branch.contains('release'))
         return 'release'
+    else if(pushed_branch.contains('dev'))
+        return 'dev'
     return 'feature'
 }
 
@@ -32,13 +34,14 @@ pipeline {
         AWS_ACCESS_KEY_ID     = credentials('jenkins-aws-secret-key-id')
         AWS_SECRET_ACCESS_KEY = credentials('jenkins-aws-secret-access-key')
         ECR_NAME              = "751307794059.dkr.ecr.eu-west-3.amazonaws.com"
-        REPO_NAME             = "star-app"
+        REPO_NAME_STAR_APP    = "star-app"
+        REPO_NAME_NGINX       = "star-app-nginx"
         GIT_URL               = "git@github.com:Julianius/star-app-gitops.git"
     }
 
     stages {
 
-        stage('clone') {
+        stage('Clone') {
             steps {
                 script {
                     sh """
@@ -53,29 +56,43 @@ pipeline {
                             echo "Getting tags."
                             git fetch --tags 
                         """
+                    } else if(PUSHED_BRANCH_NAME.equals(RELEASE)) {
+                        sh """
+                            git checkout dev
+                        """
                     }
                 }
             }
         }
 
-        stage('build') {
+        stage('Build') {
             steps {
                 script {
-                    BUILD_STRING = ''
+                    BUILD_STRING_STAR_APP = ''
+                    BUILD_STRING_NGINX = ''
                     NEXT_TAG = getNextTag(PUSHED_BRANCH_NUM)
 
                     if(PUSHED_BRANCH_NAME.equals(RELEASE)) {
-                        BUILD_STRING="$ECR_NAME/$REPO_NAME:$RELEASE-$NEXT_TAG"
+                        BUILD_STRING_STAR_APP = "$ECR_NAME/$REPO_NAME_STAR_APP:$RELEASE-$NEXT_TAG"
+                        BUILD_STRING_NGINX    = "$ECR_NAME/$REPO_NAME_NGINX:$RELEASE-$NEXT_TAG"
+                    } else if(PUSHED_BRANCH_NAME.equals(DEV)){
+                        BUILD_STRING_STAR_APP = "$ECR_NAME/$REPO_NAME_STAR_APP:$DEV"
+                        BUILD_STRING_NGINX    = "$ECR_NAME/$REPO_NAME_NGINX:$DEV"
                     } else {
-                        BUILD_STRING="$ECR_NAME/$REPO_NAME"
+                        BUILD_STRING_STAR_APP = "$ECR_NAME/$REPO_NAME_STAR_APP"
+                        BUILD_STRING_NGINX    = "$ECR_NAME/$REPO_NAME_NGINX"
                     }
 
-                    sh "docker build -t $BUILD_STRING ."
+                    sh """
+                        docker build -t $BUILD_STRING_NGINX ./nginx
+                        docker build -t $BUILD_STRING_STAR_APP .
+                    """
+
                 }
             }
         }
 
-        stage('test') {
+        stage('E2E Test') {
             steps {
                 script {
                         final String url = 'http://nginx:80/star'
@@ -85,7 +102,8 @@ pipeline {
                             cp -a nginx /var/jenkins_home/testing_files/
                             sed -i "s%./nginx/static%/home/julian/jenkins_files/nginx/static/%" docker-compose.yml
                             sed -i "s%./nginx/nginx.conf%/home/julian/jenkins_files/nginx/nginx.conf%" docker-compose.yml
-                            sed -i "s%$ECR_NAME/$REPO_NAME%$BUILD_STRING%" docker-compose.yml
+                            sed -i "s%$ECR_NAME/$REPO_NAME_STAR_APP%$BUILD_STRING_STAR_APP%" docker-compose.yml
+                            sed -i "s%$ECR_NAME/$REPO_NAME_NGINX%$BUILD_STRING_NGINX%" docker-compose.yml
                             docker-compose -p jenkins up -d --build
                         """
                         Integer counter = 5
@@ -103,14 +121,15 @@ pipeline {
             }
         }
 
-        stage('publish') {
+        stage('Publish') {
             steps {
                 script {
                     sh """
                         aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
                         aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
                         aws ecr get-login-password --region eu-west-3 | docker login --username AWS --password-stdin $ECR_NAME
-                        docker push $BUILD_STRING
+                        docker push $BUILD_STRING_STAR_APP
+                        docker push $BUILD_STRING_NGINX
                     """
                     if(PUSHED_BRANCH_NAME.equals(RELEASE)) {
                         sh """
@@ -123,7 +142,7 @@ pipeline {
             }
         }
 
-        stage('update gitops') {
+        stage('Deploy') {
             when {
                 expression {
                     return PUSHED_BRANCH_NAME.equals(RELEASE);
@@ -132,18 +151,24 @@ pipeline {
 
             steps {
                 script {
-                    String sed_params = ""
-                    String sed_path = ""
+                    String sed_params_app = ""
+                    String sed_params_nginx = ""
+                    String sed_path_app = ""
+                    String sed_path_nginx = ""
+                    
                     if(PUSHED_BRANCH_NAME.equals(RELEASE)) {
-                        sed_params = "\"s/release-.*/release-$NEXT_TAG/\""
-                        sed_path = "./gitops/charts/app/release.values.yaml"
+                        sed_params_app = "\"s/release-.*/release-$NEXT_TAG/\""
+                        sed_path_app = "./gitops/charts/app/release.values.yaml"
+                        sed_params_nginx = "\"s/release-.*/release-$NEXT_TAG/\""
+                        sed_path_nginx = "./gitops/charts/nginx/release.values.yaml"
                     } else {
 
                     }
                     sh """
                         mkdir gitops
                         git clone $GIT_URL ./gitops
-                        sed -i $sed_params $sed_path
+                        sed -i $sed_params_app $sed_path_app
+                        sed -i $sed_params_nginx $sed_path_nginx
                         git -C "./gitops" add . 
                         git -C "./gitops" commit -m "New app version $NEXT_TAG"
                         git -C "./gitops" push
