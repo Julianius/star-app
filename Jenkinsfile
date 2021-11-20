@@ -84,6 +84,7 @@ pipeline {
                     }
 
                     sh """
+                        cp -r ./static ./nginx/
                         docker build -t $BUILD_STRING_NGINX ./nginx
                         docker build -t $BUILD_STRING_STAR_APP .
                     """
