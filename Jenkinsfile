@@ -103,7 +103,7 @@ pipeline {
                             cp -a nginx /var/jenkins_home/testing_files/
                             sed -i "s%./nginx/static%/home/julian/jenkins_files/nginx/static/%" docker-compose.yml
                             sed -i "s%./nginx/nginx.conf%/home/julian/jenkins_files/nginx/nginx.conf%" docker-compose.yml
-                            sed -i "s%$ECR_NAME/$REPO_NAME_STAR_APP$%$BUILD_STRING_STAR_APP%" docker-compose.yml
+                            sed -i "s%$ECR_NAME/$REPO_NAME_STAR_APP\$%$BUILD_STRING_STAR_APP%" docker-compose.yml
                             sed -i "s%$ECR_NAME/$REPO_NAME_NGINX%$BUILD_STRING_NGINX%" docker-compose.yml
                             docker-compose -p jenkins up -d --build
                         """
