@@ -1,6 +1,7 @@
 MASTER = "master"
 RELEASE = "release"
 DEV = "dev"
+FEATURE = "feature"
 PUSHED_BRANCH_NAME = ''
 PUSHED_BRANCH_NUM = ''
 NEXT_TAG = ''
@@ -125,6 +126,12 @@ pipeline {
         }
 
         stage('Publish') {
+            when {
+                expression {
+                    return !PUSHED_BRANCH_NAME.equals(FEATURE);
+                }
+            }
+
             steps {
                 script {
                     sh """
