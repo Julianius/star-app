@@ -161,19 +161,11 @@ pipeline {
 
             steps {
                 script {
-                    String sed_params_app = ""
-                    String sed_params_nginx = ""
-                    String sed_path_app = ""
-                    String sed_path_nginx = ""
-                    
-                    if(PUSHED_BRANCH_NAME.equals(RELEASE)) {
-                        sed_params_app = "\"s/release-.*/release-$NEXT_TAG/\""
-                        sed_path_app = "./gitops/charts/app/release.values.yaml"
-                        sed_params_nginx = "\"s/release-.*/release-$NEXT_TAG/\""
-                        sed_path_nginx = "./gitops/charts/nginx/release.values.yaml"
-                    } else {
+                    final String sed_params_app = "\"s/release-.*/release-$NEXT_TAG/\""
+                    final String sed_path_app = "./gitops/charts/app/release.values.yaml"
+                    final String sed_params_nginx = "\"s/release-.*/release-$NEXT_TAG/\""
+                    final String sed_path_nginx = "./gitops/charts/nginx/release.values.yaml"
 
-                    }
                     sh """
                         mkdir gitops
                         git clone $GIT_URL ./gitops
