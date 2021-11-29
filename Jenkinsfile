@@ -171,8 +171,6 @@ pipeline {
                         sed_path_app = "./gitops/charts/app/release.values.yaml"
                         sed_params_nginx = "\"s/release-.*/release-$NEXT_TAG/\""
                         sed_path_nginx = "./gitops/charts/nginx/release.values.yaml"
-                    } else {
-
                     }
                     sh """
                         mkdir gitops
