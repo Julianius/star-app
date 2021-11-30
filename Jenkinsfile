@@ -57,7 +57,7 @@ pipeline {
                             echo "Getting tags."
                             git fetch --tags 
                         """
-                    } else if(PUSHED_BRANCH_NAME.equals(DEV)) {
+                    } else if(PUSHED_BRANCH_NAME.equals(RELEASE)) {
                         sh """
                             git checkout dev
                         """
@@ -104,6 +104,7 @@ pipeline {
                             cp -a nginx /var/jenkins_home/testing_files/
                             sed -i "s%./nginx/static%/home/ec2-user/jenkins/jenkins_files/nginx/static/%" docker-compose.yml
                             sed -i "s%./nginx/nginx.conf%/home/ec2-user/jenkins/jenkins_files/nginx/nginx.conf%" docker-compose.yml
+                            cat docker-compose.yml
                             docker-compose -p jenkins up -d --build
                         """
                         Integer counter = 5
@@ -170,6 +171,8 @@ pipeline {
                         sed_path_app = "./gitops/charts/app/release.values.yaml"
                         sed_params_nginx = "\"s/release-.*/release-$NEXT_TAG/\""
                         sed_path_nginx = "./gitops/charts/nginx/release.values.yaml"
+                    } else {
+
                     }
                     sh """
                         mkdir gitops
