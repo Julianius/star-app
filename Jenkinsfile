@@ -197,11 +197,12 @@ pipeline {
         }
 
         failure {
+            echo "Star App CI has failed!"
             //mail bcc: '', body: "<b>Star App</b><br>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> URL of build: ${env.BUILD_URL}", cc: '', charset: 'UTF-8', from: '', mimeType: 'text/html', replyTo: '', subject: "ERROR CI: Project name -> ${env.JOB_NAME}", to: "vjulianiusv@gmail.com";
         }
 
         success {
-            echo "Star App has been built, tested and deployed successfully"
+            echo "Star App has been built, tested and deployed successfully!"
             //mail bcc: '', body: "<b>Star App</b><br>Project: ${env.JOB_NAME} <br>Build Number: ${env.BUILD_NUMBER} <br> URL of build: ${env.BUILD_URL}", cc: '', charset: 'UTF-8', from: '', mimeType: 'text/html', replyTo: '', subject: "SUCCESS CI: Project name -> ${env.JOB_NAME}", to: "vjulianiusv@gmail.com";
         }
 
