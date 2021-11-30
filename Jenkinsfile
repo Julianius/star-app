@@ -57,7 +57,7 @@ pipeline {
                             echo "Getting tags."
                             git fetch --tags 
                         """
-                    } else if(PUSHED_BRANCH_NAME.equals(RELEASE)) {
+                    } else if(PUSHED_BRANCH_NAME.equals(DEV)) {
                         sh """
                             git checkout dev
                         """
